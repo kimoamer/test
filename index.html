@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-gray-900 text-white">
 <head>
-    <meta charset="UTF-8"> <!-- Corrected charset -->
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Location Trust Analyzer (Lite) Test</title>
     <!-- Using Tailwind CSS for styling -->
@@ -46,7 +46,7 @@
     <div class="w-full max-w-2xl mx-auto">
         <header class="text-center mb-6">
             <h1 class="text-3xl font-bold text-blue-400">Location Trust Analyzer</h1>
-            <p class="text-lg text-gray-400">Client-Side "Lite" Version Test</p>
+            <p class="text-lg text-gray-400">Client-Side "Lite" Version Test (v3)</p>
             <p class="text-sm text-gray-500 mt-2">
                 This test only runs device-level checks (GPS anomalies, speed, etc.).
                 It cannot detect VPNs or Proxies.
@@ -110,8 +110,7 @@
     <script>
         /**
          * LocationTrustAnalyzer-Lite.js
-         * A "lite," client-side-only version of the location trust engine.
-         * v2: Improved error handling for sanitized browser errors.
+         * v3: Calibrated to reduce false positives on good, real GPS signals.
          */
         class LocationTrustAnalyzerLite {
             constructor() {
@@ -137,7 +136,6 @@
                 };
             }
 
-            // *** NEW: Helper to create errors with codes ***
             _createError(message, code) {
                 const error = new Error(message);
                 error.code = code;
@@ -164,15 +162,12 @@
                     return { score, flags: report.finalFlags, data: report };
 
                 } catch (error) {
-                    // This block now safely handles custom errors
                     console.error('LocationTrustAnalyzer-Lite Error:', error.message, `(Code: ${error.code})`);
                     
                     let errorFlag = 'FLAG_ERROR_ANALYSIS_FAILED';
-                    // GeolocationPositionError codes
                     if (error.code === 1) errorFlag = 'FLAG_ERROR_PERMISSION_DENIED';
                     if (error.code === 2) errorFlag = 'FLAG_ERROR_POSITION_UNAVAILABLE';
                     if (error.code === 3) errorFlag = 'FLAG_ERROR_TIMEOUT';
-                    // Custom codes
                     if (error.code === -1) errorFlag = 'FLAG_ERROR_GEOLOCATION_UNSUPPORTED';
 
                     
@@ -184,25 +179,32 @@
             async _getDeviceHeuristics() {
                 const positions = await this._getWatchedPositions(5);
                 if (!positions || positions.length === 0) {
-                    // This should now be caught by the _getWatchedPositions rejection
                     throw this._createError('Could not retrieve device location.', -2);
                 }
 
                 const firstPos = positions[0];
                 const lastPos = positions[positions.length - 1];
                 const deviceFlags = [];
-
-                if (lastPos.coords.accuracy < 10 || (lastPos.coords.accuracy % 1 === 0 && lastPos.coords.accuracy > 0)) {
-                    deviceFlags.push('FLAG_PERFECT_ACCURACY');
-                }
-
+                
                 const accuracies = positions.map(p => p.coords.accuracy);
+                
+                // *** CALIBRATION CHANGE 1 ***
+                // We ONLY flag static accuracy if *all* readings are identical.
+                // This is a much stronger signal of a fake location.
                 const accuracyStdDev = this._calculateStdDev(accuracies);
                 if (accuracies.length > 3 && accuracyStdDev === 0) {
                     deviceFlags.push('FLAG_STATIC_ACCURACY_WARMUP');
                 }
-                if (accuracies.length > 0 && accuracies[0] < 100) {
-                    deviceFlags.push('FLAG_STATIC_ACCURACY_WARMUP');
+
+                // *** CALIBRATION CHANGE 2 ***
+                // REMOVED the `accuracies[0] < 100` check.
+                // This was causing false positives on good, real GPS/Wi-Fi locks.
+
+                // *** CALIBRATION CHANGE 3 ***
+                // Tuned to be less sensitive to good GPS and more sensitive to "perfect" fakes.
+                // Now flags < 5m (was < 10m) or a suspiciously round integer under 50.
+                if (lastPos.coords.accuracy < 5 || (lastPos.coords.accuracy % 1 === 0 && lastPos.coords.accuracy > 0 && lastPos.coords.accuracy < 50)) {
+                    deviceFlags.push('FLAG_PERFECT_ACCURACY');
                 }
 
 
@@ -212,18 +214,19 @@
                     
                     if (timeDelta > 0) {
                         const calcVelocity = distance / timeDelta;
-                        if (calcVelocity > 343) {
+                        if (calcVelocity > 343) { // Faster than speed of sound
                             deviceFlags.push('FLAG_IMPOSSIBLE_TRAVEL');
                         }
                         const reportedSpeed = lastPos.coords.speed;
                         if (calcVelocity > 5 && (reportedSpeed === 0 || reportedSpeed === null)) {
+                            // You moved > 5 m/s (walking speed) but your device reports 0 speed
                             deviceFlags.push('FLAG_SPEED_CONTRADICTION');
                         }
                     }
                 }
                 
                 const age = Date.now() - lastPos.timestamp;
-                if (age > 1000 * 60 * 5) {
+                if (age > 1000 * 60 * 5) { // Location is older than 5 minutes
                     deviceFlags.push('FLAG_TIMESTAMP_STALE');
                 }
 
@@ -261,12 +264,10 @@
             _getCurrentPosition() {
                 return new Promise((resolve, reject) => {
                     if (!navigator.geolocation) {
-                        // Use the new error creator
                         return reject(this._createError('Geolocation is not supported.', -1));
                     }
                     navigator.geolocation.getCurrentPosition(
                         resolve,
-                        // *** UPDATED: Copy error properties ***
                         (err) => reject(this._createError(err.message, err.code)),
                         this.locationOptions
                     );
@@ -276,7 +277,6 @@
             _getWatchedPositions(n = 5) {
                 return new Promise((resolve, reject) => {
                     if (!navigator.geolocation) {
-                        // Use the new error creator
                         return reject(this._createError('Geolocation is not supported.', -1));
                     }
 
@@ -296,7 +296,6 @@
                         if (positions.length > 0) {
                             resolve(positions);
                         } else {
-                            // *** UPDATED: Copy error properties ***
                             reject(this._createError(err.message, err.code));
                         }
                     };
@@ -313,8 +312,6 @@
                                 this._getCurrentPosition()
                                     .then(pos => resolve([pos]))
                                     .catch(fallbackErr => {
-                                        // *** UPDATED: Pass the copied error from fallback ***
-                                        // The fallbackErr is already a custom error from _getCurrentPosition
                                         const code = fallbackErr.code || 3;
                                         const message = `watchPosition timed out, and fallback failed: ${fallbackErr.message}`;
                                         reject(this._createError(message, code));
