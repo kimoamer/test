@@ -1,541 +1,370 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Spoofing Detector</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: #fafafa;
-        }
-        
-        .section h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-        
-        .control-group {
-            margin-bottom: 15px;
-        }
-        
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        
-        button:hover {
-            background: #2980b9;
-        }
-        
-        button.danger {
-            background: #e74c3c;
-        }
-        
-        button.danger:hover {
-            background: #c0392b;
-        }
-        
-        button.success {
-            background: #27ae60;
-        }
-        
-        button.success:hover {
-            background: #229954;
-        }
-        
-        .result {
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            white-space: pre-wrap;
-        }
-        
-        .result.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-        
-        .result.warning {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-        }
-        
-        .result.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-        
-        .indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .indicator.low { background: #e74c3c; }
-        .indicator.medium { background: #f39c12; }
-        .indicator.high { background: #27ae60; }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        
-        th, td {
-            text-align: left;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        th {
-            background: #34495e;
-            color: white;
-        }
-        
-        .disclaimer {
-            background: #e8f4f8;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        
-        .disclaimer strong {
-            color: #2c3e50;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Integrity Checker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    .description {
+      color: #7f8c8d;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #2980b9;
+    }
+    .btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+    }
+    .result {
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .result.pass {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .result.warn {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .result.fail {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .details {
+      margin-top: 15px;
+      padding: 15px;
+      background: #f1f3f5;
+      border-radius: 8px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      text-align: left;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #7f8c8d;
+    }
+    .disclaimer {
+      margin-top: 30px;
+      padding: 15px;
+      background: #e9ecef;
+      border-radius: 8px;
+      font-size: 0.9em;
+      color: #495057;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🛡️ Location Spoofing Detection Suite</h1>
-        
-        <div class="section">
-            <h2>1. Get Current Location</h2>
-            <button onclick="getLocation()">📍 Get Real Location</button>
-            <button class="danger" onclick="simulateFakeLocation()">🎭 Simulate Fake Location</button>
-            <div id="locationResult" class="result" style="display: none;"></div>
-        </div>
+  <header>
+    <h1>📍 Location Integrity Checker</h1>
+    <p class="description">Detects potential fake/spoofed locations by comparing browser and IP geolocation</p>
+  </header>
 
-        <div class="section">
-            <h2>2. Client-Side Heuristic Analysis</h2>
-            <button onclick="runHeuristicChecks()">🔍 Run Detection Tests</button>
-            <div id="heuristicResult" class="result" style="display: none;"></div>
-        </div>
-
-        <div class="section">
-            <h2>3. Server-Side IP Verification <span class="indicator medium"></span><small>(Simulated)</small></h2>
-            <button onclick="verifyWithServer()">🌐 Verify Location (Mock Server)</button>
-            <div id="serverResult" class="result" style="display: none;"></div>
-        </div>
-
-        <div class="section">
-            <h2>4. Advanced Monitoring</h2>
-            <button class="success" onclick="startContinuousMonitoring()">▶️ Start Monitoring</button>
-            <button class="danger" onclick="stopMonitoring()">⏹️ Stop</button>
-            <div id="monitoringStatus"></div>
-            <div id="monitoringResult" class="result" style="display: none;"></div>
-        </div>
-
-        <div class="section">
-            <h2>5. Detection Methods Comparison</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Method</th>
-                        <th>Accuracy</th>
-                        <th>Reliability</th>
-                        <th>Use Case</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Browser Geolocation</td>
-                        <td><span class="indicator low"></span>Low</td>
-                        <td>Easily Spoofed</td>
-                        <td>Basic location display</td>
-                    </tr>
-                    <tr>
-                        <td>Client Heuristics</td>
-                        <td><span class="indicator medium"></span>Medium</td>
-                        <td>Can catch simple fakes</td>
-                        <td>Frontend validation</td>
-                    </tr>
-                    <tr>
-                        <td>IP Verification</td>
-                        <td><span class="indicator medium"></span>Medium</td>
-                        <td>Server-side required</td>
-                        <td>Web apps, moderate security</td>
-                    </tr>
-                    <tr>
-                        <td>Native Mock Detection</td>
-                        <td><span class="indicator high"></span>High</td>
-                        <td>Mobile apps only</td>
-                        <td>High-security mobile</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="disclaimer">
-            <strong>⚠️ Important Limitations:</strong> Pure client-side JavaScript cannot definitively detect fake GPS locations. 
-            Browser extensions can perfectly spoof geolocation APIs. For true security, implement server-side IP verification 
-            and use native mobile SDKs for mock location detection.
-        </div>
+  <main>
+    <div class="card">
+      <p>This tool checks for location inconsistencies that may indicate spoofing:</p>
+      <ul style="margin: 15px 0 20px 20px;">
+        <li>Compares your browser's GPS location with your IP address location</li>
+        <li>Checks for emulator/device spoofing signs</li>
+        <li>Respects your privacy - all processing happens in your browser</li>
+      </ul>
+      
+      <button id="checkBtn" class="btn">Check My Location</button>
+      
+      <div id="resultContainer"></div>
     </div>
 
-    <script>
-        let monitoringInterval = null;
-        let currentLocation = null;
+    <div class="disclaimer">
+      <p><strong>Privacy Notice:</strong> Your location data is processed locally in your browser and never sent to any server. IP location data is fetched from ipapi.co (public API). Results are for demonstration purposes only.</p>
+    </div>
+  </main>
 
-        // Helper: Haversine distance calculation
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Earth radius in km
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  <script>
+    // Utility: Calculate distance between coordinates (Haversine formula)
+    function haversineDistance(coord1, coord2) {
+      const toRad = (deg) => deg * Math.PI / 180;
+      const R = 6371; // Earth radius in km
+
+      const dLat = toRad(coord2.lat - coord1.lat);
+      const dLon = toRad(coord2.lon - coord1.lon);
+
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    // Get browser geolocation
+    function requestGeolocation() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation not supported by your browser'));
+          return;
         }
 
-        // 1. Get Location
-        function getLocation() {
-            const result = document.getElementById('locationResult');
-            result.style.display = 'block';
-            result.className = 'result warning';
-            result.textContent = 'Requesting location...';
-
-            if (!navigator.geolocation) {
-                result.className = 'result error';
-                result.textContent = '❌ Geolocation not supported';
-                return;
+        navigator.geolocation.getCurrentPosition(
+          (position) => resolve({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: position.timestamp
+          }),
+          (error) => {
+            let msg = 'Unknown error';
+            switch(error.code) {
+              case error.PERMISSION_DENIED:
+                msg = 'Location access denied. Please allow location access to continue.';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                msg = 'Location information unavailable';
+                break;
+              case error.TIMEOUT:
+                msg = 'Location request timed out';
+                break;
             }
+            reject(new Error(msg));
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 60000
+          }
+        );
+      });
+    }
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    currentLocation = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        accuracy: position.coords.accuracy,
-                        timestamp: position.timestamp,
-                        altitude: position.coords.altitude,
-                        speed: position.coords.speed
-                    };
-                    
-                    result.className = 'result success';
-                    result.textContent = `✅ REAL LOCATION DETECTED\n\n` +
-                        `Latitude: ${currentLocation.latitude}\n` +
-                        `Longitude: ${currentLocation.longitude}\n` +
-                        `Accuracy: ${currentLocation.accuracy}m\n` +
-                        `Speed: ${currentLocation.speed || 'N/A'} m/s\n` +
-                        `Timestamp: ${new Date(currentLocation.timestamp).toLocaleString()}`;
-                },
-                (error) => {
-                    result.className = 'result error';
-                    result.textContent = `❌ Error: ${error.message}`;
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
-        }
+    // Get IP-based location
+    async function getIPLocation() {
+      try {
+        const response = await fetch('https://ipapi.co/json/', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        if (data.error) throw new Error('IP location service error');
+        
+        return {
+          lat: data.latitude,
+          lon: data.longitude,
+          accuracy: 100000, // ~100km typical accuracy for IP geolocation
+          city: data.city || 'Unknown',
+          country: data.country_name || 'Unknown'
+        };
+      } catch (err) {
+        console.warn('IP location fetch failed:', err);
+        throw new Error('Could not determine IP location');
+      }
+    }
 
-        // Simulate fake location for testing
-        function simulateFakeLocation() {
-            const result = document.getElementById('locationResult');
-            result.style.display = 'block';
-            result.className = 'result error';
-            
-            // Override geolocation for demonstration
-            const originalGetCurrentPosition = navigator.geolocation.getCurrentPosition;
-            navigator.geolocation.getCurrentPosition = function(success) {
-                setTimeout(() => {
-                    success({
-                        coords: {
-                            latitude: 37.7749, // San Francisco (common fake)
-                            longitude: -122.4194,
-                            accuracy: 5, // Suspiciously perfect
-                            altitude: null,
-                            speed: null
-                        },
-                        timestamp: Date.now()
-                    });
-                }, 50);
-            };
-            
-            getLocation();
-            
-            // Restore original after demo
-            setTimeout(() => {
-                navigator.geolocation.getCurrentPosition = originalGetCurrentPosition;
-            }, 1000);
-            
-            alert('🎭 FAKE LOCATION SIMULATED: San Francisco coordinates injected');
-        }
+    // Check for emulator/device spoofing signs
+    function isLikelyEmulator() {
+      const ua = navigator.userAgent;
+      const suspiciousPatterns = [
+        /sdk|emulator|genymotion|bluestacks|Android.*Build|google.*Pixel/i,
+        /iPhone.*Simulator|iPod.*Simulator|iPad.*Simulator/i
+      ];
+      
+      return suspiciousPatterns.some(pattern => pattern.test(ua));
+    }
 
-        // 2. Heuristic Detection
-        async function runHeuristicChecks() {
-            const result = document.getElementById('heuristicResult');
-            result.style.display = 'block';
-            result.textContent = 'Running detection tests...';
+    // Check sensor availability (real devices usually have sensors)
+    function hasSensors() {
+      return 'DeviceMotionEvent' in window || 'DeviceOrientationEvent' in window;
+    }
 
-            const warnings = [];
+    // Main detection logic
+    async function detectFakeLocation() {
+      const result = {
+        fake: false,
+        reasons: [],
+        details: {}
+      };
 
-            // Test 1: Native code check
-            const geoString = navigator.geolocation.getCurrentPosition.toString();
-            if (!geoString.includes('[native code]') && !geoString.includes('native code')) {
-                warnings.push('⚠️ Geolocation API may be overridden');
-            }
+      // 1. Check for emulator signs
+      if (isLikelyEmulator()) {
+        result.fake = true;
+        result.reasons.push('Emulator/device spoofing detected');
+      }
 
-            // Test 2: Request twice and compare
-            const getQuickLocation = () => new Promise(resolve => {
-                navigator.geolocation.getCurrentPosition(
-                    pos => resolve({
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude,
-                        time: pos.timestamp
-                    }),
-                    () => resolve(null),
-                    { maximumAge: 0, timeout: 5000 }
-                );
-            });
+      // 2. Get browser location
+      let browserLoc;
+      try {
+        browserLoc = await requestGeolocation();
+        result.details.browserLocation = browserLoc;
+      } catch (err) {
+        result.reasons.push(`Browser location error: ${err.message}`);
+        return { ...result, inconclusive: true };
+      }
 
-            const [pos1, pos2] = await Promise.all([getQuickLocation(), getQuickLocation()]);
-            
-            if (pos1 && pos2) {
-                const distance = calculateDistance(pos1.lat, pos1.lng, pos2.lat, pos2.lng);
-                const timeDiff = Math.abs(pos2.time - pos1.time);
-                
-                if (distance > 5 && timeDiff < 2000) {
-                    warnings.push(`🚨 Impossible movement: ${distance.toFixed(2)}km in ${timeDiff}ms`);
-                }
+      // 3. Get IP location
+      let ipLoc;
+      try {
+        ipLoc = await getIPLocation();
+        result.details.ipLocation = ipLoc;
+      } catch (err) {
+        result.reasons.push(err.message);
+        return { ...result, inconclusive: true };
+      }
 
-                if (Math.abs(distance) < 0.001 && timeDiff > 1000) {
-                    warnings.push('⚠️ Suspiciously static location across requests');
-                }
-            }
+      // 4. Compare locations
+      const distanceKm = haversineDistance(browserLoc, ipLoc);
+      const isHighAccuracy = browserLoc.accuracy < 100; // High precision GPS
+      const isFarApart = distanceKm > 100; // >100km difference
 
-            // Test 3: Known fake location patterns
-            if (currentLocation) {
-                if (currentLocation.accuracy < 5) {
-                    warnings.push('⚠️ Unusually high accuracy (possible spoof)');
-                }
-                
-                // Common fake coordinates
-                const commonFakes = [
-                    { lat: 37.7749, lng: -122.4194, name: 'San Francisco' },
-                    { lat: 40.7128, lng: -74.0060, name: 'New York' },
-                    { lat: 51.5074, lng: -0.1278, name: 'London' }
-                ];
-                
-                for (const fake of commonFakes) {
-                    if (Math.abs(currentLocation.latitude - fake.lat) < 0.01 && 
-                        Math.abs(currentLocation.longitude - fake.lng) < 0.01) {
-                        warnings.push(`🎯 Matches known fake location: ${fake.name}`);
-                    }
-                }
-            }
+      result.details.distanceKm = distanceKm;
+      result.details.isHighAccuracy = isHighAccuracy;
+      result.details.isFarApart = isFarApart;
 
-            // Test 4: Timing analysis
-            const start = performance.now();
-            await new Promise(resolve => {
-                navigator.geolocation.getCurrentPosition(
-                    () => resolve(),
-                    () => resolve(),
-                    { maximumAge: 0 }
-                );
-            });
-            const responseTime = performance.now() - start;
-            
-            if (responseTime < 20) {
-                warnings.push(`⏱️ Suspiciously fast response (${responseTime}ms)`);
-            }
+      if (isHighAccuracy && isFarApart) {
+        result.fake = true;
+        result.reasons.push(`Location mismatch: ${distanceKm.toFixed(1)} km difference between GPS and IP`);
+      }
 
-            // Display results
-            if (warnings.length > 0) {
-                result.className = 'result warning';
-                result.textContent = `🔍 DETECTION ALERTS (${warnings.length})\n\n` + 
-                    warnings.join('\n');
-            } else {
-                result.className = 'result success';
-                result.textContent = `✅ No spoofing indicators detected\n\n` +
-                    `Response time: ${responseTime.toFixed(2)}ms\n` +
-                    `API Status: Native`;
-            }
-        }
+      // 5. Sensor check (supplementary)
+      if (!hasSensors()) {
+        result.reasons.push('No motion sensors detected (common in emulators)');
+      }
 
-        // 3. Simulated Server Verification
-        async function verifyWithServer() {
-            const result = document.getElementById('serverResult');
-            result.style.display = 'block';
-            result.textContent = '🌐 Connecting to verification server...';
+      return result;
+    }
 
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
+    // Display results in UI
+    function showResult(result) {
+      const container = document.getElementById('resultContainer');
+      
+      if (result.inconclusive) {
+        container.innerHTML = `
+          <div class="result warn">
+            ⚠️ Inconclusive Results
+          </div>
+          <div class="details">${result.reasons.map(r => `• ${r}`).join('\n')}</div>
+        `;
+        return;
+      }
 
-            // MOCK SERVER RESPONSE - Replace with real API call:
-            // fetch('/api/verify-location', { method: 'POST', body: JSON.stringify({ coords: currentLocation }) })
-            
-            if (!currentLocation) {
-                result.className = 'result error';
-                result.textContent = '❌ No location data available. Click "Get Location" first.';
-                return;
-            }
+      const statusClass = result.fake ? 'fail' : 'pass';
+      const statusText = result.fake ? '🚩 Fake Location Likely Detected' : '✅ Location Appears Genuine';
+      
+      const reasonsList = result.reasons.length 
+        ? `<div class="details">Detection reasons:\n${result.reasons.map(r => `• ${r}`).join('\n')}</div>`
+        : '';
+      
+      const details = `
+        Browser Location: ${result.details.browserLocation.lat.toFixed(4)}, ${result.details.browserLocation.lon.toFixed(4)} (±${result.details.browserLocation.accuracy}m)
+        IP Location: ${result.details.ipLocation.lat.toFixed(4)}, ${result.details.ipLocation.lon.toFixed(4)} (${result.details.ipLocation.city}, ${result.details.ipLocation.country})
+        Distance Difference: ${result.details.distanceKm.toFixed(1)} km
+        High Accuracy GPS: ${result.details.isHighAccuracy ? 'Yes' : 'No'}
+      `;
+      
+      container.innerHTML = `
+        <div class="result ${statusClass}">
+          ${statusText}
+        </div>
+        ${reasonsList}
+        <div class="details">${details}</div>
+      `;
+    }
 
-            // Simulated IP-based location (normally from server)
-            const mockIpLocation = {
-                lat: 40.7128, // Simulated IP near New York
-                lng: -74.0060,
-                city: 'New York',
-                country: 'US'
-            };
+    // Loading indicator
+    function showLoading() {
+      document.getElementById('resultContainer').innerHTML = `
+        <div class="loading">
+          <p>Checking your location...</p>
+          <p style="font-size: 0.9em; margin-top: 10px;">This may take 10-15 seconds</p>
+        </div>
+      `;
+    }
 
-            const distance = calculateDistance(
-                currentLocation.latitude, currentLocation.longitude,
-                mockIpLocation.lat, mockIpLocation.lng
-            );
-
-            let confidence = 'low';
-            let status = 'INCONSISTENT';
-            
-            if (distance < 50) {
-                confidence = 'high';
-                status = 'CONSISTENT';
-                result.className = 'result success';
-            } else if (distance < 200) {
-                confidence = 'medium';
-                status = 'POSSIBLE SPOOF';
-                result.className = 'result warning';
-            } else {
-                result.className = 'result error';
-            }
-
-            result.textContent = `📊 SERVER VERIFICATION RESULT\n\n` +
-                `Status: ${status}\n` +
-                `Confidence: ${confidence}\n` +
-                `Distance from IP location: ${distance.toFixed(2)} km\n` +
-                `GPS: ${currentLocation.latitude.toFixed(4)}, ${currentLocation.longitude.toFixed(4)}\n` +
-                `IP: ${mockIpLocation.lat.toFixed(4)}, ${mockIpLocation.lng.toFixed(4)}\n` +
-                `IP City: ${mockIpLocation.city}, ${mockIpLocation.country}\n\n` +
-                `⚠️ This is a simulation. Real implementation requires server-side IP geolocation API.`;
-        }
-
-        // 4. Continuous Monitoring
-        function startContinuousMonitoring() {
-            const status = document.getElementById('monitoringStatus');
-            const result = document.getElementById('monitoringResult');
-            
-            if (monitoringInterval) {
-                status.innerHTML = '<span class="result warning">Already monitoring</span>';
-                return;
-            }
-
-            let lastPosition = null;
-            let suspiciousMoves = 0;
-            
-            monitoringInterval = setInterval(() => {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const current = {
-                            lat: pos.coords.latitude,
-                            lng: pos.coords.longitude,
-                            time: Date.now()
-                        };
-
-                        if (lastPosition) {
-                            const distance = calculateDistance(
-                                lastPosition.lat, lastPosition.lng,
-                                current.lat, current.lng
-                            );
-                            
-                            const timeDiff = current.time - lastPosition.time;
-                            const speed = distance / (timeDiff / 1000) * 3600; // km/h
-
-                            // Flag impossible speeds (commercial jets max ~900 km/h)
-                            if (speed > 1000) {
-                                suspiciousMoves++;
-                                result.style.display = 'block';
-                                result.className = 'result error';
-                                result.textContent = `🚨 IMPOSSIBLE MOVEMENT DETECTED!\n\n` +
-                                    `Speed: ${speed.toFixed(2)} km/h\n` +
-                                    `Distance: ${distance.toFixed(4)} km in ${timeDiff}ms\n` +
-                                    `From: ${lastPosition.lat.toFixed(6)}, ${lastPosition.lng.toFixed(6)}\n` +
-                                    `To: ${current.lat.toFixed(6)}, ${current.lng.toFixed(6)}\n\n` +
-                                    `Suspicious movements: ${suspiciousMoves}`;
-                            }
-                        }
-
-                        lastPosition = current;
-                        status.innerHTML = `<span class="result success">Monitoring active - Last check: ${new Date().toLocaleTimeString()}</span>`;
-                    },
-                    (error) => {
-                        status.innerHTML = `<span class="result error">Error: ${error.message}</span>`;
-                    },
-                    { maximumAge: 0, enableHighAccuracy: true }
-                );
-            }, 3000); // Check every 3 seconds
-
-            status.innerHTML = '<span class="result success">Monitoring started</span>';
-        }
-
-        function stopMonitoring() {
-            if (monitoringInterval) {
-                clearInterval(monitoringInterval);
-                monitoringInterval = null;
-                document.getElementById('monitoringStatus').innerHTML = '<span class="result warning">Monitoring stopped</span>';
-            }
-        }
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', stopMonitoring);
-    </script>
+    // Initialize
+    document.getElementById('checkBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('checkBtn');
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+      
+      showLoading();
+      
+      try {
+        const result = await detectFakeLocation();
+        showResult(result);
+      } catch (error) {
+        document.getElementById('resultContainer').innerHTML = `
+          <div class="result fail">
+            ❌ Error: ${error.message}
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Check My Location';
+      }
+    });
+  </script>
 </body>
 </html>
