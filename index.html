@@ -1,370 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Location Integrity Checker</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      line-height: 1.6;
-      padding: 20px;
-      max-width: 800px;
-      margin: 0 auto;
-      background-color: #f8f9fa;
-      color: #333;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    h1 {
-      color: #2c3e50;
-      margin-bottom: 10px;
-    }
-    .description {
-      color: #7f8c8d;
-      margin-bottom: 20px;
-    }
-    .card {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      background: #3498db;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .btn:hover {
-      background: #2980b9;
-    }
-    .btn:disabled {
-      background: #bdc3c7;
-      cursor: not-allowed;
-    }
-    .result {
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 20px;
-      text-align: center;
-      font-weight: 600;
-    }
-    .result.pass {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    .result.warn {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeaa7;
-    }
-    .result.fail {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-    .details {
-      margin-top: 15px;
-      padding: 15px;
-      background: #f1f3f5;
-      border-radius: 8px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      text-align: left;
-    }
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #7f8c8d;
-    }
-    .disclaimer {
-      margin-top: 30px;
-      padding: 15px;
-      background: #e9ecef;
-      border-radius: 8px;
-      font-size: 0.9em;
-      color: #495057;
-    }
-    @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      .card {
-        padding: 20px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>📍 Location Integrity Checker</h1>
-    <p class="description">Detects potential fake/spoofed locations by comparing browser and IP geolocation</p>
-  </header>
-
-  <main>
-    <div class="card">
-      <p>This tool checks for location inconsistencies that may indicate spoofing:</p>
-      <ul style="margin: 15px 0 20px 20px;">
-        <li>Compares your browser's GPS location with your IP address location</li>
-        <li>Checks for emulator/device spoofing signs</li>
-        <li>Respects your privacy - all processing happens in your browser</li>
-      </ul>
-      
-      <button id="checkBtn" class="btn">Check My Location</button>
-      
-      <div id="resultContainer"></div>
-    </div>
-
-    <div class="disclaimer">
-      <p><strong>Privacy Notice:</strong> Your location data is processed locally in your browser and never sent to any server. IP location data is fetched from ipapi.co (public API). Results are for demonstration purposes only.</p>
-    </div>
-  </main>
-
-  <script>
-    // Utility: Calculate distance between coordinates (Haversine formula)
-    function haversineDistance(coord1, coord2) {
-      const toRad = (deg) => deg * Math.PI / 180;
-      const R = 6371; // Earth radius in km
-
-      const dLat = toRad(coord2.lat - coord1.lat);
-      const dLon = toRad(coord2.lon - coord1.lon);
-
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-
-    // Get browser geolocation
-    function requestGeolocation() {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error('Geolocation not supported by your browser'));
-          return;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launch Location Verifier</title>
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use the Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
         }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-        navigator.geolocation.getCurrentPosition(
-          (position) => resolve({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: position.timestamp
-          }),
-          (error) => {
-            let msg = 'Unknown error';
-            switch(error.code) {
-              case error.PERMISSION_DENIED:
-                msg = 'Location access denied. Please allow location access to continue.';
-                break;
-              case error.POSITION_UNAVAILABLE:
-                msg = 'Location information unavailable';
-                break;
-              case error.TIMEOUT:
-                msg = 'Location request timed out';
-                break;
-            }
-            reject(new Error(msg));
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 60000
-          }
-        );
-      });
-    }
+    <div class="bg-white p-8 sm:p-12 rounded-xl shadow-lg text-center w-11/12 max-w-md">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Location Verifier</h1>
+        <p class="text-gray-600 mb-8">Click the button below to open the app and complete your location verification.</p>
 
-    // Get IP-based location
-    async function getIPLocation() {
-      try {
-        const response = await fetch('https://ipapi.co/json/', {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
+        <!-- 
+          This button contains the logic to attempt to open your app.
+          It passes the username 'testuser' as a query parameter.
+        -->
+        <button id="launchButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+            Launch Verification App
+        </button>
+
+        <p class="text-sm text-gray-500 mt-6">
+            If the app doesn't open, you may need to <a href="#" id="downloadLink" class="text-blue-600 hover:underline">install it first</a>.
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('launchButton').addEventListener('click', function() {
+            // --- YOU MUST EDIT THESE VALUES ---
+
+            // 1. Set your custom URL scheme (from AndroidManifest.xml)
+            // Example: 'myapp' or 'locationverifier'
+            const customScheme = 'locationverifier';
+
+            // 2. Set the path from your go_router setup (it's '/verify' in your router.dart)
+            const path = 'verify'; // Note: no leading slash for the intent URL path
+
+            // 3. Set the username you want to pass
+            const username = 'testuser';
+
+            // 4. Set your app's package name (from android/app/build.gradle, e.g., 'com.example.myapp')
+            const packageName = 'com.yourcompany.myapp'; 
+            
+            // --- END OF REQUIRED EDITS ---
+
+
+            // This is the deep link URL that your app will receive.
+            // It matches the go_router config: /verify?username=testuser
+            const deepLinkUrl = `${customScheme}://${path}?username=${username}`;
+
+            // This is the fallback URL to the Google Play Store.
+            const playStoreUrl = `https://play.google.com/store/apps/details?id=${packageName}`;
+
+            // Update the download link on the page
+            document.getElementById('downloadLink').href = playStoreUrl;
+
+            // We will try to redirect to the Android Intent URL.
+            // This is the most robust way to launch an app from a browser on Android.
+            const intentUrl = `intent://${path}?username=${username}#Intent;scheme=${customScheme};package=${packageName};end`;
+            
+            let hasApp = false;
+            const timeout = 1500; // 1.5 seconds
+
+            const blurHandler = () => {
+                // If the browser window loses focus, we assume the app opened.
+                hasApp = true;
+            };
+            window.addEventListener('blur', blurHandler);
+
+            // 1. Try to navigate using the Android Intent URL
+            window.location.href = intentUrl;
+
+            // 2. Set a timer. If the 'blur' event didn't fire (meaning the app
+            // didn't open and take focus), redirect to the Play Store.
+            setTimeout(() => {
+                window.removeEventListener('blur', blurHandler);
+                if (!hasApp) {
+                    // This check is not 100% reliable, but it's a common fallback.
+                    // If the app isn't installed, the intent URL should
+                    // ideally fail and this timeout will redirect to the store.
+                    console.log('App not detected, redirecting to Play Store.');
+                    window.location.href = playStoreUrl;
+                }
+            }, timeout);
         });
-        
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const data = await response.json();
-        if (data.error) throw new Error('IP location service error');
-        
-        return {
-          lat: data.latitude,
-          lon: data.longitude,
-          accuracy: 100000, // ~100km typical accuracy for IP geolocation
-          city: data.city || 'Unknown',
-          country: data.country_name || 'Unknown'
-        };
-      } catch (err) {
-        console.warn('IP location fetch failed:', err);
-        throw new Error('Could not determine IP location');
-      }
-    }
+    </script>
 
-    // Check for emulator/device spoofing signs
-    function isLikelyEmulator() {
-      const ua = navigator.userAgent;
-      const suspiciousPatterns = [
-        /sdk|emulator|genymotion|bluestacks|Android.*Build|google.*Pixel/i,
-        /iPhone.*Simulator|iPod.*Simulator|iPad.*Simulator/i
-      ];
-      
-      return suspiciousPatterns.some(pattern => pattern.test(ua));
-    }
-
-    // Check sensor availability (real devices usually have sensors)
-    function hasSensors() {
-      return 'DeviceMotionEvent' in window || 'DeviceOrientationEvent' in window;
-    }
-
-    // Main detection logic
-    async function detectFakeLocation() {
-      const result = {
-        fake: false,
-        reasons: [],
-        details: {}
-      };
-
-      // 1. Check for emulator signs
-      if (isLikelyEmulator()) {
-        result.fake = true;
-        result.reasons.push('Emulator/device spoofing detected');
-      }
-
-      // 2. Get browser location
-      let browserLoc;
-      try {
-        browserLoc = await requestGeolocation();
-        result.details.browserLocation = browserLoc;
-      } catch (err) {
-        result.reasons.push(`Browser location error: ${err.message}`);
-        return { ...result, inconclusive: true };
-      }
-
-      // 3. Get IP location
-      let ipLoc;
-      try {
-        ipLoc = await getIPLocation();
-        result.details.ipLocation = ipLoc;
-      } catch (err) {
-        result.reasons.push(err.message);
-        return { ...result, inconclusive: true };
-      }
-
-      // 4. Compare locations
-      const distanceKm = haversineDistance(browserLoc, ipLoc);
-      const isHighAccuracy = browserLoc.accuracy < 100; // High precision GPS
-      const isFarApart = distanceKm > 100; // >100km difference
-
-      result.details.distanceKm = distanceKm;
-      result.details.isHighAccuracy = isHighAccuracy;
-      result.details.isFarApart = isFarApart;
-
-      if (isHighAccuracy && isFarApart) {
-        result.fake = true;
-        result.reasons.push(`Location mismatch: ${distanceKm.toFixed(1)} km difference between GPS and IP`);
-      }
-
-      // 5. Sensor check (supplementary)
-      if (!hasSensors()) {
-        result.reasons.push('No motion sensors detected (common in emulators)');
-      }
-
-      return result;
-    }
-
-    // Display results in UI
-    function showResult(result) {
-      const container = document.getElementById('resultContainer');
-      
-      if (result.inconclusive) {
-        container.innerHTML = `
-          <div class="result warn">
-            ⚠️ Inconclusive Results
-          </div>
-          <div class="details">${result.reasons.map(r => `• ${r}`).join('\n')}</div>
-        `;
-        return;
-      }
-
-      const statusClass = result.fake ? 'fail' : 'pass';
-      const statusText = result.fake ? '🚩 Fake Location Likely Detected' : '✅ Location Appears Genuine';
-      
-      const reasonsList = result.reasons.length 
-        ? `<div class="details">Detection reasons:\n${result.reasons.map(r => `• ${r}`).join('\n')}</div>`
-        : '';
-      
-      const details = `
-        Browser Location: ${result.details.browserLocation.lat.toFixed(4)}, ${result.details.browserLocation.lon.toFixed(4)} (±${result.details.browserLocation.accuracy}m)
-        IP Location: ${result.details.ipLocation.lat.toFixed(4)}, ${result.details.ipLocation.lon.toFixed(4)} (${result.details.ipLocation.city}, ${result.details.ipLocation.country})
-        Distance Difference: ${result.details.distanceKm.toFixed(1)} km
-        High Accuracy GPS: ${result.details.isHighAccuracy ? 'Yes' : 'No'}
-      `;
-      
-      container.innerHTML = `
-        <div class="result ${statusClass}">
-          ${statusText}
-        </div>
-        ${reasonsList}
-        <div class="details">${details}</div>
-      `;
-    }
-
-    // Loading indicator
-    function showLoading() {
-      document.getElementById('resultContainer').innerHTML = `
-        <div class="loading">
-          <p>Checking your location...</p>
-          <p style="font-size: 0.9em; margin-top: 10px;">This may take 10-15 seconds</p>
-        </div>
-      `;
-    }
-
-    // Initialize
-    document.getElementById('checkBtn').addEventListener('click', async () => {
-      const btn = document.getElementById('checkBtn');
-      btn.disabled = true;
-      btn.textContent = 'Checking...';
-      
-      showLoading();
-      
-      try {
-        const result = await detectFakeLocation();
-        showResult(result);
-      } catch (error) {
-        document.getElementById('resultContainer').innerHTML = `
-          <div class="result fail">
-            ❌ Error: ${error.message}
-          </div>
-        `;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Check My Location';
-      }
-    });
-  </script>
 </body>
 </html>
