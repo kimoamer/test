@@ -21,77 +21,45 @@
         <p class="text-gray-600 mb-8">Click the button below to open the app and complete your location verification.</p>
 
         <!-- 
-          This button contains the logic to attempt to open your app.
-          It passes the username 'testuser' as a query parameter.
+          This is now an <a> tag styled as a button.
+          It uses the direct deep link URL in the href attribute.
         -->
-        <button id="launchButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+        <a id="launchLink" href="#" class="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" style="text-decoration: none;">
             Launch Verification App
-        </button>
+        </a>
 
-        <p class="text-sm text-gray-500 mt-6">
-            If the app doesn't open, you may need to <a href="#" id="downloadLink" class="text-blue-600 hover:underline">install it first</a>.
-        </p>
+        <!-- Removed the paragraph with the "install it first" link -->
     </div>
 
     <script>
-        document.getElementById('launchButton').addEventListener('click', function() {
-            // --- YOU MUST EDIT THESE VALUES ---
+        // --- YOU MUST EDIT THESE VALUES ---
 
-            // 1. Set your custom URL scheme (from AndroidManifest.xml)
-            // Example: 'myapp' or 'locationverifier'
-            const customScheme = 'fgr';
+        // 1. Set your custom URL scheme (from AndroidManifest.xml)
+        // Example: 'myapp' or 'locationverifier'
+        const customScheme = 'fgr';
 
-            // 2. Set the path from your go_router setup (it's '/verify' in your router.dart)
-            const path = 'verify'; // Note: no leading slash for the intent URL path
+        // 2. Set the host/path. Your router has '/verify'.
+        // The format is scheme://host/path. We can use 'app' as a host.
+        // Or, more simply, just use the path as the "host" part
+        // which matches your router.dart file's '/verify' route.
+        const path = '/verify'; // Path from router.dart
 
-            // 3. Set the username you want to pass
-            const username = 'testuser';
+        // 3. Set the username you want to pass
+        const username = 'testuser';
+        
+        // --- END OF REQUIRED EDITS ---
 
-            // 4. Set your app's package name (from android/app/build.gradle, e.g., 'com.example.myapp')
-            const packageName = 'com.yourcompany.myapp'; 
-            
-            // --- END OF REQUIRED EDITS ---
+        // Construct the direct deep link URL
+        // Format: 'scheme://path?query'
+        // Example: 'locationverifier:///verify?username=testuser'
+        // Note the triple '///' if no host is specified, or use the path as host.
+        // Let's try the format from your example: 'scheme://path?query'
+        const deepLinkUrl = `${customScheme}://${path}?username=${username}`;
 
+        // Set the href attribute of the <a> tag
+        document.getElementById('launchLink').href = deepLinkUrl;
 
-            // This is the deep link URL that your app will receive.
-            // It matches the go_router config: /verify?username=testuser
-            const deepLinkUrl = `${customScheme}://${path}?username=${username}`;
-
-            // This is the fallback URL to the Google Play Store.
-            const playStoreUrl = `https://play.google.com/store/apps/details?id=${packageName}`;
-
-            // Update the download link on the page
-            document.getElementById('downloadLink').href = playStoreUrl;
-
-            // We will try to redirect to the Android Intent URL.
-            // This is the most robust way to launch an app from a browser on Android.
-            const intentUrl = `intent://${path}?username=${username}#Intent;scheme=${customScheme};package=${packageName};end`;
-            
-            let hasApp = false;
-            const timeout = 1500; // 1.5 seconds
-
-            const blurHandler = () => {
-                // If the browser window loses focus, we assume the app opened.
-                hasApp = true;
-            };
-            window.addEventListener('blur', blurHandler);
-
-            // 1. Try to navigate using the Android Intent URL
-            window.location.href = intentUrl;
-
-            // 2. Set a timer. If the 'blur' event didn't fire (meaning the app
-            // didn't open and take focus), redirect to the Play Store.
-            setTimeout(() => {
-                window.removeEventListener('blur', blurHandler);
-                if (!hasApp) {
-                    // This check is not 100% reliable, but it's a common fallback.
-                    // If the app isn't installed, the intent URL should
-                    // ideally fail and this timeout will redirect to the store.
-                    console.log('App not detected, redirecting to Play Store.');
-                    window.location.href = playStoreUrl;
-                }
-            }, timeout);
-        });
+        // No more complex intent or fallback logic needed
     </script>
 
 </body>
